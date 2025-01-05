@@ -36,6 +36,11 @@ md-fetch solves this by using real browsers (Chrome/Firefox) in headless mode, w
 
 ## Installation
 
+### Pre-built Binaries
+Visit our [releases page](https://github.com/nathabonfim59/md-fetch/releases) to download pre-built binaries:
+- Standard build (dynamically linked)
+- Musl build (statically linked, ideal for Alpine Linux and other musl-based systems)
+
 ### Using go install
 ```bash
 go install github.com/nathabonfim59/md-fetch@latest

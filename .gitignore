@@ -1,2 +1,3 @@
 bin/fetch
 bin/md-fetch
+bin/fetch-musl
