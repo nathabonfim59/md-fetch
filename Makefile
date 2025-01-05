@@ -43,12 +43,12 @@ build-windows:
 build-all: build-linux build-linux-musl build-macos build-windows packages
 
 package-deb: build-linux-musl
-	ln -sf $(BINARY_NAME)-$(COMMIT_HASH)-linux-musl-amd64 $(BUILD_DIR)/$(BINARY_NAME)-package
+	cp $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-musl-amd64 $(BUILD_DIR)/$(BINARY_NAME)-package
 	VERSION=$(VERSION) COMMIT_HASH=$(COMMIT_HASH) nfpm pkg --config build/nfpm.yml --target $(BUILD_DIR)/$(BINARY_NAME)_$(VERSION)+$(COMMIT_HASH)_amd64.deb --packager deb
 	rm -f $(BUILD_DIR)/$(BINARY_NAME)-package
 
 package-rpm: build-linux-musl
-	ln -sf $(BINARY_NAME)-$(COMMIT_HASH)-linux-musl-amd64 $(BUILD_DIR)/$(BINARY_NAME)-package
+	cp $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-musl-amd64 $(BUILD_DIR)/$(BINARY_NAME)-package
 	VERSION=$(VERSION) COMMIT_HASH=$(COMMIT_HASH) nfpm pkg --config build/nfpm.yml --target $(BUILD_DIR)/$(BINARY_NAME)-$(VERSION)+$(COMMIT_HASH).x86_64.rpm --packager rpm
 	rm -f $(BUILD_DIR)/$(BINARY_NAME)-package
 
