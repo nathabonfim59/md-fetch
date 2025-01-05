@@ -38,8 +38,30 @@ md-fetch solves this by using real browsers (Chrome/Firefox) in headless mode, w
 
 ### Pre-built Binaries
 Visit our [releases page](https://github.com/nathabonfim59/md-fetch/releases) to download pre-built binaries:
+
+#### Linux
 - Standard build (dynamically linked)
 - Musl build (statically linked, ideal for Alpine Linux and other musl-based systems)
+- Debian/Ubuntu package (.deb)
+- Red Hat/Fedora package (.rpm)
+
+#### macOS
+- Intel (amd64)
+- Apple Silicon (arm64)
+
+#### Windows
+- 64-bit (amd64)
+
+#### Package Installation
+For Debian/Ubuntu:
+```bash
+sudo dpkg -i md-fetch_<version>_amd64.deb
+```
+
+For Red Hat/Fedora:
+```bash
+sudo rpm -i md-fetch-<version>.x86_64.rpm
+```
 
 ### Using go install
 ```bash
