@@ -66,9 +66,9 @@ func (s *Server) handleFetch(w http.ResponseWriter, r *http.Request) {
 			
 			if err != nil {
 				errors[url] = err.Error()
-			} else {
-				results[url] = content
+				return
 			}
+			results[url] = content
 		}(url)
 	}
 
@@ -76,7 +76,9 @@ func (s *Server) handleFetch(w http.ResponseWriter, r *http.Request) {
 
 	response := FetchResponse{
 		Results: results,
-		Errors:  errors,
+	}
+	if len(errors) > 0 {
+		response.Errors = errors
 	}
 
 	w.Header().Set("Content-Type", "application/json")
