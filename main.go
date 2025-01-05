@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -8,14 +9,16 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Usage: md-fetch <url>")
+	browserFlag := flag.String("browser", "", "Browser to use (chrome, firefox, or curl)")
+	flag.Parse()
+
+	if flag.NArg() < 1 {
+		fmt.Println("Usage: md-fetch [-browser chrome|firefox|curl] <url>")
 		os.Exit(1)
 	}
 
-	url := os.Args[1]
-	// Prefer Chrome for better JavaScript support
-	content, err := fetcher.FetchContent(url, "chrome")
+	url := flag.Arg(0)
+	content, err := fetcher.FetchContent(url, *browserFlag)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
