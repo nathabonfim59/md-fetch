@@ -36,6 +36,12 @@ md-fetch solves this by using real browsers (Chrome/Firefox) in headless mode, w
 
 ## Installation
 
+### Using go install
+```bash
+go install github.com/nathabonfim59/md-fetch@latest
+```
+
+### From Source
 1. Ensure you have Go 1.16 or later installed
 2. Clone the repository:
    ```bash
