@@ -44,6 +44,74 @@ func TestStripJavaScript(t *testing.T) {
 			contains: []string{"<div", "<p>Text</p>", "<button", "Button", "</button>", "</div>"},
 			excludes: []string{"<script", "var x = 1", "onclick", "click()", "alert"},
 		},
+		{
+			name: "anonymous functions and json",
+			input: `<html>
+				<head>
+					<script>
+						(RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgHostname":"test"});});
+					</script>
+				</head>
+				<body>
+					<div>Content</div>
+					{"@context":"https://schema.org","@type":"Article","name":"Test"}
+					(function(x) { console.log(x); })();
+				</body>
+			</html>`,
+			contains: []string{"<div>Content</div>"},
+			excludes: []string{
+				"RLQ",
+				"window.RLQ",
+				"mw.config",
+				"wgHostname",
+				"schema.org",
+				"@context",
+				"function",
+				"console.log",
+			},
+		},
+		{
+			name: "complex javascript patterns",
+			input: `<html>
+				<head>
+					<script>
+						(function(){var _g={kEI:'test'};(function(){window.google=_g;}).call(this);})();
+						(RLQ=window.RLQ||[]).push(function(){mw.config.set({"test":"value"});});
+						google.x=function(a,b){google.y[c]=[a,b];return!1};
+						document.documentElement.addEventListener("submit",function(b){});
+						var g=this||self;var k,l=(k=g.mei)!=null?k:1;
+						#gbar,#guser{font-size:13px;padding-top:1px !important;}
+						window.onerror=function(a,b,d,n,e){return null};
+					</script>
+				</head>
+				<body>
+					<div>Content</div>
+					{"@context":"https://schema.org","@type":"Article","name":"Test"}
+					<script>
+						(function(){
+							var src='/images/test.png';
+							document.body.onload = function(){};
+						})();
+					</script>
+				</body>
+			</html>`,
+			contains: []string{"<div>Content</div>"},
+			excludes: []string{
+				"function",
+				"window.RLQ",
+				"mw.config",
+				"google.x",
+				"addEventListener",
+				"document.body",
+				"onerror",
+				"schema.org",
+				"@context",
+				"#gbar",
+				"font-size",
+				"var src",
+				"onload",
+			},
+		},
 	}
 
 	for _, tt := range tests {
