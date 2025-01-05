@@ -32,6 +32,7 @@ func (c *Chrome) Fetch(url string) ([]byte, error) {
 		"--disable-gpu",
 		"--dump-dom",
 		"--no-sandbox",
+		"--enable-automation",  // This flag helps with redirects and automation
 		url,
 	)
 

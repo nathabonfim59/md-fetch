@@ -30,6 +30,7 @@ func (f *Firefox) Fetch(url string) ([]byte, error) {
 	cmd := exec.Command(f.execPath,
 		"--headless",
 		"--dump-dom",
+		"--enable-automation",  // This flag helps with redirects and automation
 		url,
 	)
 	
