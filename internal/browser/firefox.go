@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"fmt"
 	"os/exec"
 )
 
@@ -29,10 +30,16 @@ func (f *Firefox) Fetch(url string) ([]byte, error) {
 	// Use Firefox in headless mode to fetch content
 	cmd := exec.Command(f.execPath,
 		"--headless",
-		"--dump-dom",
-		"--enable-automation",  // This flag helps with redirects and automation
+		"--enable-automation",
+		"--wait-for-browser",
+		"--dump-dom",  // This will output the rendered DOM
 		url,
 	)
 	
-	return cmd.Output()
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("firefox execution error: %v", err)
+	}
+
+	return output, nil
 }

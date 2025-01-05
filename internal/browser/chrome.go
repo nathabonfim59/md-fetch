@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"fmt"
 	"os/exec"
 )
 
@@ -30,11 +31,17 @@ func (c *Chrome) Fetch(url string) ([]byte, error) {
 	cmd := exec.Command(c.execPath,
 		"--headless",
 		"--disable-gpu",
-		"--dump-dom",
 		"--no-sandbox",
-		"--enable-automation",  // This flag helps with redirects and automation
+		"--enable-automation",
+		"--virtual-time-budget=5000",  // Allow 5 seconds for JavaScript execution
+		"--dump-dom",  // This will output the rendered DOM
 		url,
 	)
 
-	return cmd.Output()
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("chrome execution error: %v", err)
+	}
+
+	return output, nil
 }

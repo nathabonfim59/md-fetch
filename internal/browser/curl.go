@@ -27,5 +27,11 @@ func (c *Curl) Name() string {
 
 func (c *Curl) Fetch(url string) ([]byte, error) {
 	cmd := exec.Command(c.execPath, "-L", "-s", url)
-	return cmd.Output()
+	content, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	// Strip JavaScript from the content since Curl can't execute it
+	return StripJavaScript(content), nil
 }
