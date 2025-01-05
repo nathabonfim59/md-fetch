@@ -3,7 +3,8 @@
 BINARY_NAME=md-fetch
 BUILD_DIR=bin
 GO_FILES=$(shell find . -name '*.go')
-VERSION=$(shell git describe --tags --always || echo "dev")
+VERSION=$(shell git rev-parse --short HEAD || echo "unknown")
+TAG=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 COMMIT_HASH=$(shell git rev-parse --short HEAD || echo "unknown")
 
 build: build-linux build-linux-musl
@@ -44,12 +45,12 @@ build-all: build-linux build-linux-musl build-macos build-windows packages
 
 package-deb: build-linux-musl
 	cp $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-musl-amd64 $(BUILD_DIR)/$(BINARY_NAME)-package
-	VERSION=$(VERSION) COMMIT_HASH=$(COMMIT_HASH) nfpm pkg --config build/nfpm.yml --target $(BUILD_DIR)/$(BINARY_NAME)_$(VERSION)+$(COMMIT_HASH)_amd64.deb --packager deb
+	VERSION=$(VERSION) TAG=$(TAG) COMMIT_HASH=$(COMMIT_HASH) nfpm pkg --config build/nfpm.yml --target $(BUILD_DIR)/$(BINARY_NAME)_$(TAG)-$(VERSION)+$(COMMIT_HASH)_amd64.deb --packager deb
 	rm -f $(BUILD_DIR)/$(BINARY_NAME)-package
 
 package-rpm: build-linux-musl
 	cp $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-musl-amd64 $(BUILD_DIR)/$(BINARY_NAME)-package
-	VERSION=$(VERSION) COMMIT_HASH=$(COMMIT_HASH) nfpm pkg --config build/nfpm.yml --target $(BUILD_DIR)/$(BINARY_NAME)-$(VERSION)+$(COMMIT_HASH).x86_64.rpm --packager rpm
+	VERSION=$(VERSION) TAG=$(TAG) COMMIT_HASH=$(COMMIT_HASH) nfpm pkg --config build/nfpm.yml --target $(BUILD_DIR)/$(BINARY_NAME)-$(TAG)-$(VERSION)+$(COMMIT_HASH).x86_64.rpm --packager rpm
 	rm -f $(BUILD_DIR)/$(BINARY_NAME)-package
 
 packages: package-deb package-rpm

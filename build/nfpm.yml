@@ -1,7 +1,7 @@
 name: md-fetch
 arch: amd64
 platform: linux
-version: ${VERSION}
+version: ${TAG}-${VERSION}
 maintainer: Nathanael Bonfim <dev@nathabonfim59.com>
 description: A command-line tool to fetch web content and convert it to clean Markdown format.
 homepage: https://github.com/nathabonfim59/md-fetch
