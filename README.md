@@ -49,6 +49,8 @@ md-fetch solves this by using real browsers (Chrome/Firefox) in headless mode, w
 
 ## Usage
 
+### CLI Mode
+
 Basic usage:
 ```bash
 md-fetch <url>
@@ -72,6 +74,58 @@ md-fetch -browser firefox https://www.google.com
 
 # Use curl for static content
 md-fetch -browser curl https://www.google.com
+```
+
+### Server Mode
+
+Start the HTTP server:
+```bash
+md-fetch --serve [-port 8080]
+```
+
+The server provides a REST API for fetching content:
+
+#### Single URL Request
+```bash
+curl -X POST http://localhost:8080/fetch \
+  -H "Content-Type: application/json" \
+  -d '{
+    "urls": ["https://www.example.com"],
+    "browser": "chrome"
+  }'
+```
+
+#### Batch Request (Parallel Processing)
+```bash
+curl -X POST http://localhost:8080/fetch \
+  -H "Content-Type: application/json" \
+  -d '{
+    "urls": [
+      "https://www.example.com",
+      "https://www.google.com",
+      "https://www.github.com"
+    ],
+    "browser": "chrome"
+  }'
+```
+
+#### OpenAPI Specification
+Access the OpenAPI specification at:
+```
+http://localhost:8080/openapi.yaml
+```
+
+#### Response Format
+```json
+{
+  "results": {
+    "https://www.example.com": "# Example Domain\n\nThis domain is for...",
+    "https://www.google.com": "# Google\n\n[Gmail](https://mail.google.com)..."
+  },
+  "errors": {
+    "https://invalid.url": "error message"
+  }
+}
 ```
 
 ## Browser Support
