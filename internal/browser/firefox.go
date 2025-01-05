@@ -7,6 +7,7 @@ import (
 
 type Firefox struct {
 	execPath string
+	cleaningOpts *CleaningOptions
 }
 
 func NewFirefox() (*Firefox, error) {
@@ -19,11 +20,18 @@ func NewFirefox() (*Firefox, error) {
 		return nil, err
 	}
 	
-	return &Firefox{execPath: path}, nil
+	return &Firefox{
+		execPath: path,
+		cleaningOpts: DefaultCleaningOptions(),
+	}, nil
 }
 
 func (f *Firefox) Name() string {
 	return "Firefox"
+}
+
+func (f *Firefox) SetCleaningOptions(opts *CleaningOptions) {
+	f.cleaningOpts = opts
 }
 
 func (f *Firefox) Fetch(url string) ([]byte, error) {
@@ -41,5 +49,5 @@ func (f *Firefox) Fetch(url string) ([]byte, error) {
 		return nil, fmt.Errorf("firefox execution error: %v", err)
 	}
 
-	return output, nil
+	return CleanHTML(output, f.cleaningOpts), nil
 }

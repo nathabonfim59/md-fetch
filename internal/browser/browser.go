@@ -5,12 +5,23 @@ import (
 	"os/exec"
 )
 
-// Browser represents a web browser interface
+// Browser represents a web browser interface for fetching content
 type Browser interface {
+	// Name returns the name of the browser
+	Name() string
 	// Fetch retrieves content from a URL
 	Fetch(url string) ([]byte, error)
-	// Name returns the browser's name
-	Name() string
+	// SetCleaningOptions sets the HTML cleaning options
+	SetCleaningOptions(*CleaningOptions)
+}
+
+// CleaningOptions configures what elements to remove from HTML
+type CleaningOptions struct {
+	KeepHeader    bool // Keep header elements if true
+	KeepFooter    bool // Keep footer elements if true
+	KeepNav       bool // Keep navigation elements if true
+	KeepStyles    bool // Keep inline and internal styles if true
+	KeepComments  bool // Keep HTML comments if true
 }
 
 // ExecutableFinder is an interface for finding browser executables
@@ -49,22 +60,16 @@ func GetDefaultBrowser() (Browser, error) {
 	return nil, fmt.Errorf("no supported browsers found: %v", lastErr)
 }
 
-// NewBrowser creates a new browser instance based on the browser type
-func NewBrowser(browserType string) (Browser, error) {
-	switch browserType {
+// NewBrowser creates a new browser instance based on the browser name
+func NewBrowser(name string) (Browser, error) {
+	switch name {
 	case "chrome", "chromium":
 		return NewChrome()
 	case "firefox":
 		return NewFirefox()
-	case "links":
-		return NewLinks()
-	case "lynx":
-		return NewLynx()
-	case "w3m":
-		return NewW3m()
 	case "curl":
 		return NewCurl()
 	default:
-		return nil, fmt.Errorf("unsupported browser type: %s", browserType)
+		return nil, fmt.Errorf("unsupported browser type: %s", name)
 	}
 }

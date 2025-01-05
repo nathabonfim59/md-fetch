@@ -1,11 +1,13 @@
 package browser
 
 import (
+	"fmt"
 	"os/exec"
 )
 
 type Curl struct {
 	execPath string
+	cleaningOpts *CleaningOptions
 }
 
 func NewCurl() (*Curl, error) {
@@ -18,20 +20,26 @@ func NewCurl() (*Curl, error) {
 		return nil, err
 	}
 	
-	return &Curl{execPath: path}, nil
+	return &Curl{
+		execPath: path,
+		cleaningOpts: DefaultCleaningOptions(),
+	}, nil
 }
 
 func (c *Curl) Name() string {
 	return "Curl"
 }
 
+func (c *Curl) SetCleaningOptions(opts *CleaningOptions) {
+	c.cleaningOpts = opts
+}
+
 func (c *Curl) Fetch(url string) ([]byte, error) {
 	cmd := exec.Command(c.execPath, "-L", "-s", url)
-	content, err := cmd.Output()
+	output, err := cmd.Output()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("curl execution error: %v", err)
 	}
 
-	// Strip JavaScript from the content since Curl can't execute it
-	return StripJavaScript(content), nil
+	return CleanHTML(output, c.cleaningOpts), nil
 }

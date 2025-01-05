@@ -26,8 +26,11 @@ func TestBrowserRedirect(t *testing.T) {
 		return
 	}
 
-	// Verify it's HTML content
-	if !strings.Contains(strings.ToLower(string(content)), "<!doctype html") {
+	// Verify it's HTML content (handle different formats)
+	contentStr := strings.ToLower(string(content))
+	if !strings.Contains(contentStr, "<!doctype html") &&
+		!strings.Contains(contentStr, "<html") &&
+		!strings.Contains(contentStr, "<body") {
 		t.Error("Content does not appear to be HTML")
 	}
 }

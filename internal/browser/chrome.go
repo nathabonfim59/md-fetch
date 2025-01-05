@@ -7,6 +7,7 @@ import (
 
 type Chrome struct {
 	execPath string
+	cleaningOpts *CleaningOptions
 }
 
 func NewChrome() (*Chrome, error) {
@@ -19,11 +20,18 @@ func NewChrome() (*Chrome, error) {
 		return nil, err
 	}
 
-	return &Chrome{execPath: path}, nil
+	return &Chrome{
+		execPath: path,
+		cleaningOpts: DefaultCleaningOptions(),
+	}, nil
 }
 
 func (c *Chrome) Name() string {
 	return "Chrome/Chromium"
+}
+
+func (c *Chrome) SetCleaningOptions(opts *CleaningOptions) {
+	c.cleaningOpts = opts
 }
 
 func (c *Chrome) Fetch(url string) ([]byte, error) {
@@ -43,5 +51,5 @@ func (c *Chrome) Fetch(url string) ([]byte, error) {
 		return nil, fmt.Errorf("chrome execution error: %v", err)
 	}
 
-	return output, nil
+	return CleanHTML(output, c.cleaningOpts), nil
 }
