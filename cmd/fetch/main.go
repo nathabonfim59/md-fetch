@@ -4,16 +4,20 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/nathabonfim59/md-fetch/internal/browser"
 	"github.com/nathabonfim59/md-fetch/internal/fetcher"
 )
 
 func main() {
-	browserType := flag.String("browser", "curl", "Browser to use (chrome, firefox, links, lynx, w3m, curl)")
+	browserType := flag.String("browser", "", "Browser to use (optional, defaults to chrome > firefox > curl)")
 	flag.Parse()
 
 	if flag.NArg() < 1 {
-		fmt.Println("Usage: fetch [-browser=type] URL")
+		fmt.Printf("Usage: fetch [-browser=type] URL\n\n")
+		fmt.Printf("Supported browsers (in order of preference):\n")
+		fmt.Printf("  %s\n\n", strings.Join(browser.DefaultBrowsers, ", "))
 		flag.PrintDefaults()
 		os.Exit(1)
 	}

@@ -24,7 +24,17 @@ func FetchContent(url string, browserType string) (string, error) {
 		url = "https://" + url
 	}
 
-	b, err := browser.NewBrowser(browserType)
+	var b browser.Browser
+	var err error
+
+	if browserType == "" {
+		// Use default browser priority
+		b, err = browser.GetDefaultBrowser()
+	} else {
+		// Use specified browser
+		b, err = browser.NewBrowser(browserType)
+	}
+
 	if err != nil {
 		return "", fmt.Errorf("error creating browser: %v", err)
 	}

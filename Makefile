@@ -1,28 +1,28 @@
-.PHONY: build test clean run install lint
+.PHONY: build test clean install lint
 
-BINARY_NAME := md-fetch
-BUILD_DIR := bin
-GO := go
-GOLANGCI_LINT := golangci-lint
+BINARY_NAME=fetch
+BUILD_DIR=bin
+GO_FILES=$(shell find . -name '*.go')
 
-build:
+build: $(BUILD_DIR)/$(BINARY_NAME)
+
+$(BUILD_DIR)/$(BINARY_NAME): $(GO_FILES)
 	mkdir -p $(BUILD_DIR)
-	$(GO) build -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/fetch
-
-run: build
-	$(BUILD_DIR)/$(BINARY_NAME)
+	go build -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/fetch
 
 test:
-	$(GO) test ./...
+	go test ./...
 
 clean:
 	rm -rf $(BUILD_DIR)
-	$(GO) clean
+	go clean
 
 install:
-	$(GO) install ./cmd/fetch
+	go install ./cmd/fetch
 
 lint:
-	$(GOLANGCI_LINT) run
+	go fmt ./...
+	go vet ./...
 
-.DEFAULT_GOAL := build
+run: build
+	./$(BUILD_DIR)/$(BINARY_NAME)

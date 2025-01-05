@@ -8,9 +8,8 @@ import (
 
 func main() {
 	url := "https://example.com"
-	browserType := "curl" // Default to curl
-
-	content, err := fetcher.FetchContent(url, browserType)
+	// Browser will be automatically selected based on availability
+	content, err := fetcher.FetchContent(url, "")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

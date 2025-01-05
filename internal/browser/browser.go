@@ -33,6 +33,22 @@ func (f *DefaultExecutableFinder) Find() (string, error) {
 	return "", fmt.Errorf("no browser executable found for: %v", f.names)
 }
 
+// DefaultBrowsers defines the priority order for browsers
+var DefaultBrowsers = []string{"chrome", "firefox", "curl"}
+
+// GetDefaultBrowser tries browsers in order of preference and returns the first available one
+func GetDefaultBrowser() (Browser, error) {
+	var lastErr error
+	for _, browserType := range DefaultBrowsers {
+		browser, err := NewBrowser(browserType)
+		if err == nil {
+			return browser, nil
+		}
+		lastErr = err
+	}
+	return nil, fmt.Errorf("no supported browsers found: %v", lastErr)
+}
+
 // NewBrowser creates a new browser instance based on the browser type
 func NewBrowser(browserType string) (Browser, error) {
 	switch browserType {
