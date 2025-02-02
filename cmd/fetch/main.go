@@ -1,33 +1,67 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/gosimple/slug"
 	"github.com/nathabonfim59/md-fetch/internal/browser"
 	"github.com/nathabonfim59/md-fetch/internal/fetcher"
+	"github.com/spf13/cobra"
 )
 
+var (
+	browserType string
+	save        bool
+	filename    string
+)
+
+var rootCmd = &cobra.Command{
+	Use:   "md-fetch [url]",
+	Short: "Fetch web content and convert it to Markdown",
+	Long: `A CLI tool that fetches web content and converts it to clean, readable Markdown format.
+Supports multiple browsers and can bypass anti-scraping measures.`,
+	Args: cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		url := args[0]
+		content, err := fetcher.FetchContent(url, browserType)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+
+		if save {
+			if filename == "" {
+				filename = slug.Make(url) + ".md"
+			}
+
+			fmt.Printf("Saving content to %s\n", filename)
+			file, err := os.Create(filename)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error creating file: %v\n", err)
+				os.Exit(1)
+			}
+			defer file.Close()
+
+			if _, err := file.WriteString(content); err != nil {
+				fmt.Fprintf(os.Stderr, "Error writing to file: %v\n", err)
+				os.Exit(1)
+			}
+		} else {
+			fmt.Println(content)
+		}
+	},
+}
+
+func init() {
+	rootCmd.Flags().StringVarP(&browserType, "browser", "b", "", fmt.Sprintf("Browser to use (optional, defaults to %s)", strings.Join(browser.DefaultBrowsers, " > ")))
+	rootCmd.Flags().BoolVarP(&save, "save", "s", false, "Save content to a file with slugified URL name")
+	rootCmd.Flags().StringVarP(&filename, "filename", "f", "", "Custom filename to save the content (optional, defaults to slugified URL)")
+}
+
 func main() {
-	browserType := flag.String("browser", "", "Browser to use (optional, defaults to chrome > firefox > curl)")
-	flag.Parse()
-
-	if flag.NArg() < 1 {
-		fmt.Printf("Usage: fetch [-browser=type] URL\n\n")
-		fmt.Printf("Supported browsers (in order of preference):\n")
-		fmt.Printf("  %s\n\n", strings.Join(browser.DefaultBrowsers, ", "))
-		flag.PrintDefaults()
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
-
-	url := flag.Arg(0)
-	content, err := fetcher.FetchContent(url, *browserType)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Println(content)
 }
