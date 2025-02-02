@@ -1,0 +1,137 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: default
+    main: ./cmd/fetch
+    binary: md-fetch
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+    flags:
+      - -trimpath
+  
+  - id: musl
+    main: ./cmd/fetch
+    binary: md-fetch
+    env:
+      - CGO_ENABLED=1
+      - CC=x86_64-linux-musl-gcc
+    goos:
+      - linux
+    goarch:
+      - amd64
+    ldflags:
+      - -s -w
+      - -linkmode external
+      - -extldflags "-static"
+    flags:
+      - -trimpath
+    hooks:
+      post:
+        - upx "{{ .Path }}"
+
+upx:
+  - enabled: true
+    goos: [linux, windows]
+    goarch: [amd64, "386"]
+    compress: best
+
+nfpms:
+  - id: packages-musl
+    builds: [musl]
+    package_name: md-fetch
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_musl"
+    vendor: nathabonfim59
+    homepage: https://github.com/nathabonfim59/md-fetch
+    maintainer: Nathanael Bonfim <nathanael@bonfim.dev>
+    description: A powerful command-line tool that fetches web content and converts it to clean, readable Markdown format.
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    dependencies:
+      - git
+    recommends:
+      - google-chrome
+      - firefox
+    contents:
+      - src: LICENSE
+        dst: /usr/share/doc/md-fetch/LICENSE
+      - src: README.md
+        dst: /usr/share/doc/md-fetch/README.md
+    meta: false
+    bindir: /usr/bin
+
+archives:
+  - id: default
+    builds: [default]
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - LICENSE
+      - README.md
+  
+  - id: musl
+    builds: [musl]
+    formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}_musl
+    files:
+      - LICENSE
+      - README.md
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: nathabonfim59
+    name: md-fetch
+  draft: true
+  prerelease: auto
+  mode: replace
+  footer: |
+    ---
+    Released by [GoReleaser](https://github.com/goreleaser/goreleaser)
+    
+    **Full Changelog**: https://github.com/nathabonfim59/md-fetch/compare/{{ .PreviousTag }}...{{ .Tag }}

@@ -1,65 +1,65 @@
-.PHONY: build test clean install lint build-musl package-deb package-rpm packages build-all
+.PHONY: build test clean install lint snapshot release release-major release-minor release-patch
 
 BINARY_NAME=md-fetch
 BUILD_DIR=bin
 GO_FILES=$(shell find . -name '*.go')
-VERSION=$(shell git rev-parse --short HEAD || echo "unknown")
-TAG=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-COMMIT_HASH=$(shell git rev-parse --short HEAD || echo "unknown")
 
-build: build-linux build-linux-musl
+# Get the latest tag without the 'v' prefix
+CURRENT_VERSION=$(shell git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0")
+# Split version into major, minor, and patch
+MAJOR=$(shell echo $(CURRENT_VERSION) | cut -d. -f1)
+MINOR=$(shell echo $(CURRENT_VERSION) | cut -d. -f2)
+PATCH=$(shell echo $(CURRENT_VERSION) | cut -d. -f3)
 
-build-linux:
-	GOOS=linux GOARCH=amd64 go build \
-	-trimpath \
-	-ldflags='-w -s' \
-	-o $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-amd64 ./cmd/fetch
+build:
+	goreleaser build --clean --single-target --snapshot
 
-build-linux-musl:
-	CC=x86_64-linux-musl-gcc \
-	CGO_ENABLED=1 \
-	GOOS=linux GOARCH=amd64 \
-	go build \
-	-buildvcs=false \
-	-trimpath \
-	-ldflags='-w -s -linkmode external -extldflags "-static"' \
-	-o $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-musl-amd64 ./cmd/fetch
+build-all:
+	goreleaser build --clean --snapshot
 
-build-macos:
-	GOOS=darwin GOARCH=amd64 go build \
-	-trimpath \
-	-ldflags='-w -s' \
-	-o $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-darwin-amd64 ./cmd/fetch
-	GOOS=darwin GOARCH=arm64 go build \
-	-trimpath \
-	-ldflags='-w -s' \
-	-o $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-darwin-arm64 ./cmd/fetch
+snapshot:
+	goreleaser release --clean --snapshot
 
-build-windows:
-	GOOS=windows GOARCH=amd64 go build \
-	-trimpath \
-	-ldflags='-w -s' \
-	-o $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-windows-amd64.exe ./cmd/fetch
+release-major:
+	@echo "Current version: v$(CURRENT_VERSION)"
+	$(eval NEW_VERSION=$(shell echo $$(($(MAJOR)+1)).0.0))
+	@echo "Creating major release v$(NEW_VERSION)"
+	@read -p "Press enter to continue..." \
+	&& git tag -a v$(NEW_VERSION) -m "Release v$(NEW_VERSION)" \
+	&& git push origin v$(NEW_VERSION) \
+	&& goreleaser release --clean
 
-build-all: build-linux build-linux-musl build-macos build-windows packages
+release-minor:
+	@echo "Current version: v$(CURRENT_VERSION)"
+	$(eval NEW_VERSION=$(shell echo $(MAJOR).$$(($(MINOR)+1)).0))
+	@echo "Creating minor release v$(NEW_VERSION)"
+	@read -p "Press enter to continue..." \
+	&& git tag -a v$(NEW_VERSION) -m "Release v$(NEW_VERSION)" \
+	&& git push origin v$(NEW_VERSION) \
+	&& goreleaser release --clean
 
-package-deb: build-linux-musl
-	cp $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-musl-amd64 $(BUILD_DIR)/$(BINARY_NAME)-package
-	VERSION=$(VERSION) TAG=$(TAG) COMMIT_HASH=$(COMMIT_HASH) nfpm pkg --config build/nfpm.yml --target $(BUILD_DIR)/$(BINARY_NAME)_$(TAG)-$(VERSION)+$(COMMIT_HASH)_amd64.deb --packager deb
-	rm -f $(BUILD_DIR)/$(BINARY_NAME)-package
+release-patch:
+	@echo "Current version: v$(CURRENT_VERSION)"
+	$(eval NEW_VERSION=$(shell echo $(MAJOR).$(MINOR).$$(($(PATCH)+1))))
+	@echo "Creating patch release v$(NEW_VERSION)"
+	@read -p "Press enter to continue..." \
+	&& git tag -a v$(NEW_VERSION) -m "Release v$(NEW_VERSION)" \
+	&& git push origin v$(NEW_VERSION) \
+	&& goreleaser release --clean
 
-package-rpm: build-linux-musl
-	cp $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-musl-amd64 $(BUILD_DIR)/$(BINARY_NAME)-package
-	VERSION=$(VERSION) TAG=$(TAG) COMMIT_HASH=$(COMMIT_HASH) nfpm pkg --config build/nfpm.yml --target $(BUILD_DIR)/$(BINARY_NAME)-$(TAG)-$(VERSION)+$(COMMIT_HASH).x86_64.rpm --packager rpm
-	rm -f $(BUILD_DIR)/$(BINARY_NAME)-package
-
-packages: package-deb package-rpm
+release:
+	@echo "Please use one of:"
+	@echo "  make release-major  - for major version updates (X.0.0)"
+	@echo "  make release-minor  - for minor version updates (x.Y.0)"
+	@echo "  make release-patch  - for patch version updates (x.y.Z)"
+	@echo "This ensures proper version management and tag creation."
 
 test:
 	go test ./...
 
 clean:
 	rm -rf $(BUILD_DIR)
+	rm -rf dist/
 	go clean
 
 install:
@@ -69,5 +69,8 @@ lint:
 	go fmt ./...
 	go vet ./...
 
-run: build
-	./$(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-amd64
+%:
+	@:
+
+run:
+	go run cmd/fetch/main.go $(filter-out $@,$(MAKECMDGOALS))
