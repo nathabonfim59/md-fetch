@@ -1,4 +1,4 @@
-.PHONY: build test clean install lint snapshot release release-major release-minor release-patch
+.PHONY: build test clean install lint snapshot release release-major release-minor release-patch release-current
 
 BINARY_NAME=md-fetch
 BUILD_DIR=bin
@@ -24,7 +24,7 @@ release-major:
 	@echo "Current version: v$(CURRENT_VERSION)"
 	$(eval NEW_VERSION=$(shell echo $$(($(MAJOR)+1)).0.0))
 	@echo "Creating major release v$(NEW_VERSION)"
-	@read -p "Press enter to continue..." \
+	@echo "Press enter to continue..." && read dummy \
 	&& git tag -a v$(NEW_VERSION) -m "Release v$(NEW_VERSION)" \
 	&& git push origin v$(NEW_VERSION) \
 	&& goreleaser release --clean
@@ -33,7 +33,7 @@ release-minor:
 	@echo "Current version: v$(CURRENT_VERSION)"
 	$(eval NEW_VERSION=$(shell echo $(MAJOR).$$(($(MINOR)+1)).0))
 	@echo "Creating minor release v$(NEW_VERSION)"
-	@read -p "Press enter to continue..." \
+	@echo "Press enter to continue..." && read dummy \
 	&& git tag -a v$(NEW_VERSION) -m "Release v$(NEW_VERSION)" \
 	&& git push origin v$(NEW_VERSION) \
 	&& goreleaser release --clean
@@ -42,16 +42,23 @@ release-patch:
 	@echo "Current version: v$(CURRENT_VERSION)"
 	$(eval NEW_VERSION=$(shell echo $(MAJOR).$(MINOR).$$(($(PATCH)+1))))
 	@echo "Creating patch release v$(NEW_VERSION)"
-	@read -p "Press enter to continue..." \
+	@echo "Press enter to continue..." && read dummy \
 	&& git tag -a v$(NEW_VERSION) -m "Release v$(NEW_VERSION)" \
 	&& git push origin v$(NEW_VERSION) \
 	&& goreleaser release --clean
 
+release-current:
+	@echo "Current version: v$(CURRENT_VERSION)"
+	@echo "This will create a release for the current tag v$(CURRENT_VERSION)"
+	@echo "Press enter to continue..." && read dummy \
+	&& goreleaser release --clean
+
 release:
 	@echo "Please use one of:"
-	@echo "  make release-major  - for major version updates (X.0.0)"
-	@echo "  make release-minor  - for minor version updates (x.Y.0)"
-	@echo "  make release-patch  - for patch version updates (x.y.Z)"
+	@echo "  make release-major   - for major version updates (X.0.0)"
+	@echo "  make release-minor   - for minor version updates (x.Y.0)"
+	@echo "  make release-patch   - for patch version updates (x.y.Z)"
+	@echo "  make release-current - release the current version"
 	@echo "This ensures proper version management and tag creation."
 
 test:
