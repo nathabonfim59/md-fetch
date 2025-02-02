@@ -69,5 +69,8 @@ lint:
 	go fmt ./...
 	go vet ./...
 
-run: build
-	./dist/md-fetch_*/md-fetch
+%:
+	@:
+
+run:
+	go run cmd/fetch/main.go $(filter-out $@,$(MAKECMDGOALS))
