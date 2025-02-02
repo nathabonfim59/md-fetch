@@ -1,3 +1,5 @@
 bin/
 *.deb
 *.rpm
+# Added by goreleaser init:
+dist/

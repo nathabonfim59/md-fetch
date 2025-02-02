@@ -1,65 +1,27 @@
-.PHONY: build test clean install lint build-musl package-deb package-rpm packages build-all
+.PHONY: build test clean install lint snapshot release
 
 BINARY_NAME=md-fetch
 BUILD_DIR=bin
 GO_FILES=$(shell find . -name '*.go')
-VERSION=$(shell git rev-parse --short HEAD || echo "unknown")
-TAG=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-COMMIT_HASH=$(shell git rev-parse --short HEAD || echo "unknown")
 
-build: build-linux build-linux-musl
+build:
+	goreleaser build --clean --single-target --snapshot
 
-build-linux:
-	GOOS=linux GOARCH=amd64 go build \
-	-trimpath \
-	-ldflags='-w -s' \
-	-o $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-amd64 ./cmd/fetch
+build-all:
+	goreleaser build --clean --snapshot
 
-build-linux-musl:
-	CC=x86_64-linux-musl-gcc \
-	CGO_ENABLED=1 \
-	GOOS=linux GOARCH=amd64 \
-	go build \
-	-buildvcs=false \
-	-trimpath \
-	-ldflags='-w -s -linkmode external -extldflags "-static"' \
-	-o $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-musl-amd64 ./cmd/fetch
+snapshot:
+	goreleaser release --clean --snapshot
 
-build-macos:
-	GOOS=darwin GOARCH=amd64 go build \
-	-trimpath \
-	-ldflags='-w -s' \
-	-o $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-darwin-amd64 ./cmd/fetch
-	GOOS=darwin GOARCH=arm64 go build \
-	-trimpath \
-	-ldflags='-w -s' \
-	-o $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-darwin-arm64 ./cmd/fetch
-
-build-windows:
-	GOOS=windows GOARCH=amd64 go build \
-	-trimpath \
-	-ldflags='-w -s' \
-	-o $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-windows-amd64.exe ./cmd/fetch
-
-build-all: build-linux build-linux-musl build-macos build-windows packages
-
-package-deb: build-linux-musl
-	cp $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-musl-amd64 $(BUILD_DIR)/$(BINARY_NAME)-package
-	VERSION=$(VERSION) TAG=$(TAG) COMMIT_HASH=$(COMMIT_HASH) nfpm pkg --config build/nfpm.yml --target $(BUILD_DIR)/$(BINARY_NAME)_$(TAG)-$(VERSION)+$(COMMIT_HASH)_amd64.deb --packager deb
-	rm -f $(BUILD_DIR)/$(BINARY_NAME)-package
-
-package-rpm: build-linux-musl
-	cp $(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-musl-amd64 $(BUILD_DIR)/$(BINARY_NAME)-package
-	VERSION=$(VERSION) TAG=$(TAG) COMMIT_HASH=$(COMMIT_HASH) nfpm pkg --config build/nfpm.yml --target $(BUILD_DIR)/$(BINARY_NAME)-$(TAG)-$(VERSION)+$(COMMIT_HASH).x86_64.rpm --packager rpm
-	rm -f $(BUILD_DIR)/$(BINARY_NAME)-package
-
-packages: package-deb package-rpm
+release:
+	goreleaser release --clean
 
 test:
 	go test ./...
 
 clean:
 	rm -rf $(BUILD_DIR)
+	rm -rf dist/
 	go clean
 
 install:
@@ -70,4 +32,4 @@ lint:
 	go vet ./...
 
 run: build
-	./$(BUILD_DIR)/$(BINARY_NAME)-$(COMMIT_HASH)-linux-amd64
+	./dist/md-fetch_*/md-fetch
