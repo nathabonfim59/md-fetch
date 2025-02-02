@@ -86,12 +86,18 @@ go install github.com/nathabonfim59/md-fetch@latest
 
 Basic usage:
 ```bash
-md-fetch <url>
+md-fetch [url]
 ```
 
-With browser selection:
+Options:
 ```bash
-md-fetch -browser <chrome|firefox|curl> <url>
+md-fetch [flags] [url]
+
+Flags:
+  -b, --browser string    Browser to use (optional, defaults to chrome > firefox > curl)
+  -f, --filename string   Custom filename to save the content (optional, defaults to slugified URL)
+  -h, --help             help for md-fetch
+  -s, --save             Save content to a file with slugified URL name
 ```
 
 Examples:
@@ -100,13 +106,13 @@ Examples:
 md-fetch https://www.google.com
 
 # Use Chrome specifically
-md-fetch -browser chrome https://www.google.com
+md-fetch --browser chrome https://www.google.com
 
-# Use Firefox specifically
-md-fetch -browser firefox https://www.google.com
+# Use Firefox and save to file
+md-fetch --browser firefox --save https://www.google.com
 
-# Use curl for static content
-md-fetch -browser curl https://www.google.com
+# Use curl and specify custom filename
+md-fetch --browser curl --save --filename output.md https://www.google.com
 ```
 
 ### Server Mode
