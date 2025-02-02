@@ -119,7 +119,11 @@ md-fetch --browser curl --save --filename output.md https://www.google.com
 
 Start the HTTP server:
 ```bash
-md-fetch --serve [-port 8080]
+md-fetch serve [flags]
+
+Flags:
+  -h, --help        help for serve
+  -p, --port int    Port for HTTP server (default 8080)
 ```
 
 The server provides a REST API for fetching content:
