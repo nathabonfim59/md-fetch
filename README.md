@@ -19,11 +19,11 @@ A powerful command-line tool that fetches web content and converts it to clean, 
 ### Installation
 
 ```bash
+# Using Shell Script (Linux & macOS)
+curl -fsSL https://raw.githubusercontent.com/nathabonfim59/md-fetch/main/install.sh | sh
+
 # Using Go
 go install github.com/nathabonfim59/md-fetch@latest
-
-# As an Agent Skill
-npx skills add nathabonfim59/md-fetch
 ```
 
 [Detailed Installation Guide (Releases, Source, etc.) →](docs/installation.md)
