@@ -6,7 +6,7 @@ require (
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.2.2
 	github.com/gosimple/slug v1.15.0
 	github.com/spf13/cobra v1.8.1
-	golang.org/x/net v0.33.0
+	golang.org/x/net v0.38.0
 )
 
 require (
