@@ -1,510 +1,481 @@
 <!doctype html>
 <html lang="en" class="scroll-smooth">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>md-fetch | Web to Markdown for AI</title>
-    <meta
-      name="description"
-      content="A powerful command-line tool that fetches web content and converts it to clean, readable Markdown format, optimized for LLMs."
-    />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ["Inter", "sans-serif"],
-              mono: ["Fira Code", "monospace"],
-            },
-            colors: {
-              primary: "#3b82f6",
-              secondary: "#1e293b",
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>md-fetch | Reliable Web-to-Markdown for AI Agents</title>
+  <meta name="description"
+    content="Stop 403/404 errors in your AI workflows. md-fetch uses real browsers to deliver clean, token-efficient Markdown to your agents." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script>
+    // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"],
+          },
+          colors: {
+            brand: {
+              black: "#000000",
+              white: "#ffffff",
+              gray: {
+                50: "#f9fafb",
+                100: "#f3f4f6",
+                200: "#e5e7eb",
+                300: "#d1d5db",
+                400: "#9ca3af",
+                500: "#6b7280",
+                600: "#4b5563",
+                700: "#374151",
+                800: "#1f2937",
+                900: "#111827",
+              },
+              accent: "#0066FF",
             },
           },
         },
-      };
-    </script>
-    <style>
-      .gradient-text {
-        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+      },
+    };
+  </script>
+  <style>
+    body {
+      background-color: #ffffff;
+      color: #111827;
+    }
+
+    .dark body {
+      background-color: #000000;
+      color: #f3f4f6;
+    }
+
+    .code-block {
+      background-color: #f3f4f6;
+      border: 1px solid #e5e7eb;
+    }
+
+    .dark .code-block {
+      background-color: #0a0a0a;
+      border-color: #1f2937;
+    }
+
+    /* Fix PrismJS white background *
+      pre[class*="language-"], code[class*="language-"] {
+        background: transparent !important;
+        text-shadow: none !important;
       }
-      .hero-pattern {
-        background-color: #0f172a;
-        background-image: radial-gradient(
-          circle at 50% 0%,
-          #1e293b 0%,
-          #0f172a 70%
-        );
+      .feature-card {
+        border: 1px solid #e5e7eb;
+        transition: border-color 0.2s ease;
       }
-    </style>
-  </head>
-  <body class="bg-slate-50 text-slate-900 font-sans antialiased">
-    <!-- Navigation -->
-    <nav
-      class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16 items-center">
-          <div class="flex-shrink-0 flex items-center gap-2">
-            <svg
-              class="w-8 h-8 text-blue-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-              ></path>
-            </svg>
-            <span class="font-bold text-xl tracking-tight text-slate-900"
-              >md-fetch</span
-            >
-          </div>
-          <div class="hidden md:flex space-x-8 items-center">
-            <a
-              href="#features"
-              class="text-sm font-medium text-slate-600 hover:text-blue-600 transition"
-              >Features</a
-            >
-            <a
-              href="#installation"
-              class="text-sm font-medium text-slate-600 hover:text-blue-600 transition"
-              >Installation</a
-            >
-            <a
-              href="https://editor.swagger.io/?url=https://nathabonfim59.github.io/md-fetch/site/openapi.yaml"
-              target="_blank"
-              class="text-sm font-medium text-slate-600 hover:text-blue-600 transition flex items-center gap-1"
-            >
-              API Explorer
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                ></path>
-              </svg>
-            </a>
-            <a
-              href="https://github.com/nathabonfim59/md-fetch"
-              target="_blank"
-              class="text-sm font-medium text-slate-600 hover:text-slate-900 transition"
-              >GitHub</a
-            >
-          </div>
-        </div>
+      .dark .feature-card {
+        border-color: #1f2937;
+        background-color: #000000;
+      }
+      .feature-card:hover {
+        border-color: #0066FF;
+      }
+      /* Remove all gradients and slop *
+      * {
+        background-image: none !important;
+        text-shadow: none !important;
+        box-shadow: none !important;
+      }
+      .btn-shadow {
+        box-shadow: 4px 4px 0px #000000 !important;
+      }
+      .dark .btn-shadow {
+        box-shadow: 4px 4px 0px #ffffff !important;
+      }
+      .btn-shadow:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0px #000000 !important;
+      }
+      .dark .btn-shadow:active {
+        box-shadow: 2px 2px 0px #ffffff !important;
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+      }
+      @keyframes float-delayed {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+      }
+      @keyframes pulse-slow {
+        0%, 100% { opacity: 0.1; }
+        50% { opacity: 0.4; }
+      }
+      @keyframes path-draw {
+        0% { stroke-dashoffset: 1000; }
+        100% { stroke-dashoffset: 0; }
+      }
+      .animate-float {
+        animation: float 8s ease-in-out infinite;
+      }
+      .animate-float-delayed {
+        animation: float-delayed 8s ease-in-out 4s infinite;
+      }
+      .animate-pulse-slow {
+        animation: pulse-slow 4s ease-in-out infinite;
+      }
+      .animate-path-draw {
+        stroke-dasharray: 1000;
+        animation: path-draw 30s linear infinite;
+      }
+  </style>
+</head>
+
+<body class="font-sans antialiased dark:bg-brand-black dark:text-brand-gray-50">
+  <!-- Navigation -->
+  <nav class="border-b border-brand-gray-200 dark:border-brand-gray-800 sticky top-0 bg-white dark:bg-brand-black z-50">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <svg class="w-8 h-8 text-brand-black dark:text-brand-white" viewBox="0 0 512 512" fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <path d="M64 16 L256 208 L448 16 V304 L256 496 L64 304 Z" fill="currentColor" />
+          <path d="M448 16 L256 208 V496 L448 304 Z" fill="#0066FF" />
+        </svg>
+        <span class="font-bold text-xl tracking-tight">md-fetch</span>
       </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <div class="hero-pattern pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div class="text-center max-w-3xl mx-auto">
-          <h1
-            class="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6"
-          >
-            Web to Markdown, <br />
-            <span class="gradient-text">Built for AI</span>
-          </h1>
-          <p class="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed">
-            Bypass anti-scraping blocks with real headless browsers. Convert
-            messy HTML into clean, token-efficient Markdown perfect for LLMs.
-          </p>
-          <div class="flex flex-col sm:flex-row justify-center gap-4">
-            <a
-              href="#installation"
-              class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition shadow-lg shadow-blue-500/30"
-            >
-              Get Started
-            </a>
-            <a
-              href="https://editor.swagger.io/?url=https://nathabonfim59.github.io/md-fetch/site/openapi.yaml"
-              target="_blank"
-              class="inline-flex items-center justify-center px-8 py-3.5 border border-slate-700 text-base font-medium rounded-lg text-white bg-slate-800/50 hover:bg-slate-800 transition backdrop-blur-sm"
-            >
-              Open in Swagger Editor
-            </a>
-          </div>
-        </div>
-
-        <!-- Terminal Mockup -->
-        <div class="mt-16 max-w-4xl mx-auto">
-          <div
-            class="rounded-xl overflow-hidden shadow-2xl bg-[#1e1e1e] border border-slate-800"
-          >
-            <div
-              class="flex items-center px-4 py-3 bg-[#2d2d2d] border-b border-slate-800"
-            >
-              <div class="flex space-x-2">
-                <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div class="w-3 h-3 rounded-full bg-green-500"></div>
-              </div>
-              <div class="ml-4 text-xs text-slate-400 font-mono">bash</div>
-            </div>
-            <div class="p-4 text-sm font-mono overflow-x-auto">
-              <div class="text-slate-300">
-                <span class="text-green-400">➜</span>
-                <span class="text-blue-400">~</span> md-fetch
-                https://example.com
-              </div>
-              <div class="mt-4 text-slate-400">
-                # Example Domain This domain is for use in illustrative examples
-                in documents. You may use this domain in literature without
-                prior coordination or asking for permission. [More
-                information...](https://www.iana.org/domains/example)
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#features" class="text-sm font-medium hover:text-brand-accent">Features</a>
+        <a href="#installation" class="text-sm font-medium hover:text-brand-accent">Install</a>
+        <a href="https://github.com/nathabonfim59/md-fetch" target="_blank"
+          class="text-sm font-medium hover:text-brand-accent">GitHub</a>
+        <a href="#installation"
+          class="bg-brand-black dark:bg-brand-white text-white dark:text-brand-black px-4 py-2 text-sm font-bold btn-shadow transition-all">Get
+          Started</a>
       </div>
     </div>
+  </nav>
 
-    <!-- Features -->
-    <div id="features" class="py-24 bg-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <h2 class="text-3xl font-bold text-slate-900">Why use md-fetch?</h2>
-          <p class="mt-4 text-lg text-slate-600">
-            Designed specifically to solve the hardest web scraping challenges
-            for AI applications.
-          </p>
-        </div>
+  <!-- Hero Section -->
+  <header class="py-20 md:py-32 border-b border-brand-gray-200 dark:border-brand-gray-800 relative overflow-hidden">
+    <!-- Animated Background SVG Overlay -->
+    <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+      <!-- Abstract Nodes & Connections -->
+      <svg
+        class="absolute top-[5%] right-[5%] w-64 h-64 text-brand-gray-200 dark:text-brand-gray-800 opacity-50 animate-float"
+        viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="100" cy="100" r="80" stroke="currentColor" stroke-width="1" stroke-dasharray="4 8"
+          class="animate-[spin_40s_linear_infinite]" style="transform-origin: center;" />
+        <path d="M60 100 L140 100 M100 60 L100 140" stroke="currentColor" stroke-width="1" />
+        <circle cx="100" cy="100" r="40" stroke="currentColor" stroke-width="1" />
+      </svg>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-          <!-- Feature 1 -->
-          <div
-            class="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition"
-          >
-            <div
-              class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6 text-blue-600"
-            >
-              <svg
-                class="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                ></path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-bold text-slate-900 mb-3">
-              Bypass Anti-Scraping
-            </h3>
-            <p class="text-slate-600 leading-relaxed">
-              Uses real headless Chrome and Firefox to bypass 403 Forbidden
-              errors, CAPTCHAs, and execute JavaScript reliably.
-            </p>
-          </div>
+      <svg
+        class="absolute bottom-[5%] left-[5%] w-72 h-72 text-brand-gray-200 dark:text-brand-gray-800 opacity-40 animate-float-delayed"
+        viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="20" width="160" height="160" rx="8" stroke="currentColor" stroke-width="1"
+          stroke-dasharray="10 10" />
+        <path d="M40 60 L160 60" stroke="currentColor" stroke-width="1" />
+        <circle cx="50" cy="40" r="4" fill="currentColor" />
+        <circle cx="65" cy="40" r="4" fill="currentColor" />
+        <circle cx="80" cy="40" r="4" fill="currentColor" />
+      </svg>
 
-          <!-- Feature 2 -->
-          <div
-            class="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition"
-          >
-            <div
-              class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-6 text-purple-600"
-            >
-              <svg
-                class="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                ></path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-bold text-slate-900 mb-3">
-              Smart HTML Cleaning
-            </h3>
-            <p class="text-slate-600 leading-relaxed">
-              Automatically strips unwanted scripts, CSS, ads, and irrelevant
-              metadata while preserving core article structures.
-            </p>
-          </div>
+      <svg class="absolute top-[40%] right-[15%] w-32 h-32 text-brand-accent opacity-20 animate-pulse-slow"
+        viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 50 Q 50 10 90 50 Q 50 90 10 50" stroke="currentColor" stroke-width="2" />
+        <circle cx="50" cy="50" r="10" fill="currentColor" class="animate-[pulse_3s_infinite]" />
+      </svg>
 
-          <!-- Feature 3 -->
-          <div
-            class="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition"
-          >
-            <div
-              class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-6 text-emerald-600"
-            >
-              <svg
-                class="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                ></path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-bold text-slate-900 mb-3">
-              AI & Token Optimized
-            </h3>
-            <p class="text-slate-600 leading-relaxed">
-              Outputs lightweight Markdown, drastically reducing token usage and
-              improving context retention for Large Language Models.
-            </p>
-          </div>
-        </div>
-      </div>
+      <!-- Winding Data Line -->
+      <svg class="absolute top-0 left-1/4 w-1/2 h-full text-brand-accent opacity-10" viewBox="0 0 100 400"
+        preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 0 C 80 100, 20 300, 50 400" stroke="currentColor" stroke-width="1" class="animate-path-draw" />
+      </svg>
     </div>
 
-    <!-- API & Server Section -->
-    <div class="py-24 bg-slate-50 border-y border-slate-200">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <h2 class="text-3xl font-bold text-slate-900 mb-6">
-              Powerful Server Mode
-            </h2>
-            <p class="text-lg text-slate-600 mb-8 leading-relaxed">
-              Need to process multiple URLs at once? Start
-              <code>md-fetch serve</code> to spin up a high-performance REST
-              API. Perform batch requests, process pages in parallel, and
-              integrate seamlessly into your AI pipelines.
-            </p>
-            <ul class="space-y-4 mb-8 text-slate-600">
-              <li class="flex items-center gap-3">
-                <svg
-                  class="w-5 h-5 text-green-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 13l4 4L19 7"
-                  ></path>
-                </svg>
-                Concurrent batch processing
-              </li>
-              <li class="flex items-center gap-3">
-                <svg
-                  class="w-5 h-5 text-green-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 13l4 4L19 7"
-                  ></path>
-                </svg>
-                Choose between Chrome, Firefox, or Curl per request
-              </li>
-              <li class="flex items-center gap-3">
-                <svg
-                  class="w-5 h-5 text-green-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 13l4 4L19 7"
-                  ></path>
-                </svg>
-                Standard OpenAPI 3.0 specification built-in
-              </li>
-            </ul>
-            <a
-              href="https://editor.swagger.io/?url=https://nathabonfim59.github.io/md-fetch/site/openapi.yaml"
-              target="_blank"
-              class="inline-flex items-center gap-2 px-6 py-3 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition shadow-sm font-medium"
-            >
-              Explore the API in Swagger
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                ></path>
-              </svg>
-            </a>
-          </div>
-          <div class="rounded-xl overflow-hidden shadow-xl bg-[#1e1e1e]">
-            <div
-              class="px-4 py-3 bg-[#2d2d2d] border-b border-slate-800 flex justify-between items-center"
-            >
-              <div class="text-xs text-slate-400 font-mono">POST /fetch</div>
-              <div class="text-xs text-slate-500 font-mono">curl</div>
-            </div>
-            <pre
-              class="p-4 text-sm font-mono"
-            ><code class="language-bash">curl -X POST http://localhost:8080/fetch \
-  -H "Content-Type: application/json" \
-  -d '{
-    "urls": [
-      "https://example.com/article-1",
-      "https://example.com/article-2"
-    ],
-    "browser": "chrome"
-  }'</code></pre>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Installation -->
-    <div id="installation" class="py-24 bg-white">
-      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-3xl font-bold text-slate-900 mb-8">
-          Ready to get started?
-        </h2>
-
+    <div class="max-w-6xl mx-auto px-6 relative z-10">
+      <div class="max-w-3xl">
         <div
-          class="text-left bg-slate-50 rounded-xl p-6 md:p-8 border border-slate-200 shadow-sm"
-        >
-          <h3 class="text-lg font-semibold text-slate-900 mb-4">
-            Shell Script (Linux & macOS)
-          </h3>
-          <pre
-            class="bg-[#1e1e1e] rounded-lg p-4 overflow-x-auto mb-8"
-          ><code class="language-bash text-sm">curl -fsSL https://raw.githubusercontent.com/nathabonfim59/md-fetch/main/install.sh | sh</code></pre>
-
-          <h3 class="text-lg font-semibold text-slate-900 mb-4">Using Go</h3>
-          <pre
-            class="bg-[#1e1e1e] rounded-lg p-4 overflow-x-auto"
-          ><code class="language-bash text-sm">go install github.com/nathabonfim59/md-fetch@latest</code></pre>
-
-          <h3 class="text-lg font-semibold text-slate-900 mt-8 mb-4">
-            Agent Skill (OpenCode, Gemini CLI, Claude Code)
-          </h3>
-          <p class="text-slate-600 mb-4">
-            Install the specialized agent skill to use md-fetch directly with
-            AI agents like Gemini CLI, Claude Code, OpenCode or other compatible ecosystems.
-          </p>
-          <pre
-            class="bg-[#1e1e1e] rounded-lg p-4 overflow-x-auto"
-          ><code class="language-bash text-sm">npx skills add nathabonfim59/md-fetch</code></pre>
-
-          <h3 class="text-lg font-semibold text-slate-900 mt-8 mb-4">
-            Or download pre-built binaries
-          </h3>
-          <p class="text-slate-600 mb-4">
-            Available for Linux, macOS (Intel & Apple Silicon), and Windows.
-          </p>
-          <a
-            href="https://github.com/nathabonfim59/md-fetch/releases"
-            target="_blank"
-            class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
-          >
-            View all releases on GitHub
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M14 5l7 7m0 0l-7 7m7-7H3"
-              ></path>
-            </svg>
+          class="inline-block bg-brand-gray-100 dark:bg-brand-gray-900 px-3 py-1 text-xs font-bold uppercase tracking-widest mb-6">
+          Stop 403 Forbidden Errors
+        </div>
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-[1.1]">
+          Your AI agent deserves better than a <span class="text-brand-accent">404</span>.
+        </h1>
+        <p class="text-xl md:text-2xl text-brand-gray-600 dark:text-brand-gray-400 mb-10 leading-relaxed">
+          Stop letting websites block your tools. md-fetch uses your real browser to bypass anti-scraping and deliver
+          perfectly cleaned Markdown to your LLMs.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <a href="#installation"
+            class="inline-flex items-center justify-center bg-brand-black dark:bg-brand-white text-white dark:text-brand-black px-8 py-4 text-lg font-bold btn-shadow transition-all">
+            Install Now
           </a>
+          <a href="https://editor.swagger.io/?url=https://nathabonfim59.github.io/md-fetch/site/openapi.yaml"
+            target="_blank"
+            class="inline-flex items-center justify-center border-2 border-brand-black dark:border-brand-white px-8 py-4 text-lg font-bold hover:bg-brand-gray-50 dark:hover:bg-brand-gray-900 transition-all">
+            Explore API
+          </a>
+        </div>
+      </div>
+
+      <!-- Terminal Comparison -->
+      <div class="mt-20 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="border border-brand-gray-200 dark:border-brand-gray-800 p-6 bg-white dark:bg-brand-black">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+            <span class="text-xs font-bold text-brand-gray-400 uppercase">Standard Scraper</span>
+          </div>
+          <div class="font-mono text-sm space-y-2">
+            <div class="text-brand-gray-400">$ curl https://blocked-site.com</div>
+            <div class="text-red-600 dark:text-red-400 font-bold">HTTP/1.1 403 Forbidden</div>
+            <div class="text-brand-gray-500 italic">&lt;!-- Cloudflare protection enabled --&gt;</div>
+            <div
+              class="mt-4 p-3 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded border border-red-100 dark:border-red-900/50">
+              Agent: "I'm sorry, I cannot access that website due to security restrictions."
+            </div>
+          </div>
+        </div>
+        <div class="border-2 border-brand-black dark:border-brand-white p-6 bg-white dark:bg-brand-black relative">
+          <div class="absolute -top-3 -right-3 bg-brand-accent text-white px-2 py-1 text-[10px] font-bold uppercase">
+            Recommended</div>
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+            <span class="text-xs font-bold text-brand-gray-400 uppercase">md-fetch (Chrome mode)</span>
+          </div>
+          <div class="font-mono text-sm space-y-2">
+            <div class="text-brand-gray-400">$ md-fetch --browser chrome https://blocked-site.com</div>
+            <div class="text-green-600 dark:text-green-400 font-bold"># Main Article Title</div>
+            <div class="text-brand-gray-800 dark:text-brand-gray-200">This content was fetched using a real headless
+              browser session, bypassing blocks...</div>
+            <div class="mt-4 p-3 bg-brand-gray-900 dark:bg-brand-gray-100 text-white dark:text-brand-black rounded">
+              Agent: "I've analyzed the site. Here is the summary you requested..."
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  </header>
 
-    <!-- Footer -->
-    <footer class="bg-slate-900 py-12 border-t border-slate-800 text-center">
-      <div
-        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6"
-      >
-        <div class="flex items-center gap-2 text-white">
-          <svg
-            class="w-6 h-6 text-blue-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-            ></path>
-          </svg>
-          <span class="font-bold text-lg tracking-tight">md-fetch</span>
+  <!-- Features -->
+  <section id="features" class="py-24 bg-brand-gray-50 dark:bg-brand-gray-900/50 relative overflow-hidden">
+    <!-- Feature Section Background Animations -->
+    <div class="absolute inset-0 z-0 pointer-events-none flex justify-center items-center opacity-30 dark:opacity-10">
+      <svg class="absolute top-0 left-0 w-full h-full max-w-full" viewBox="0 0 1000 400" preserveAspectRatio="none"
+        fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 200 Q 250 50 500 200 T 1000 200" stroke="currentColor"
+          class="text-brand-gray-300 dark:text-brand-gray-700 animate-path-draw" stroke-width="2" />
+        <path d="M0 220 Q 250 70 500 220 T 1000 220" stroke="currentColor"
+          class="text-brand-accent opacity-20 animate-path-draw" stroke-width="1" style="animation-duration: 20s;" />
+        <circle cx="250" cy="125" r="4" class="fill-brand-accent animate-pulse-slow" />
+        <circle cx="750" cy="275" r="4" class="fill-brand-accent animate-pulse-slow" />
+      </svg>
+    </div>
+    <div class="max-w-6xl mx-auto px-6 relative z-10">
+      <div class="mb-16">
+        <h2 class="text-3xl font-bold mb-4">Built for the AI Era</h2>
+        <p class="text-brand-gray-600 dark:text-brand-gray-400 max-w-2xl">Traditional scrapers are dead. md-fetch is
+          designed to bridge the gap between the complex web and LLM context windows.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="feature-card bg-white dark:bg-brand-black p-8">
+          <div class="font-bold text-brand-accent mb-4 text-sm uppercase tracking-tighter">01. Real Browsers</div>
+          <h3 class="text-xl font-bold mb-4">Bypass Everything</h3>
+          <p class="text-brand-gray-600 dark:text-brand-gray-400 leading-relaxed">
+            Don't just spoof headers. Use real <strong>Headless Chrome</strong> or <strong>Firefox</strong> to execute
+            JavaScript, handle cookies, and bypass sophisticated bot detection.
+          </p>
         </div>
-        <p class="text-slate-400 text-sm">
-          Released under the MIT License. Built for the open source community.
-        </p>
-        <div class="flex space-x-6">
-          <a
-            href="https://github.com/nathabonfim59/md-fetch"
-            target="_blank"
-            class="text-slate-400 hover:text-white transition"
-          >
-            <span class="sr-only">GitHub</span>
-            <svg
-              class="h-6 w-6"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </a>
+        <div class="feature-card bg-white dark:bg-brand-black p-8">
+          <div class="font-bold text-brand-accent mb-4 text-sm uppercase tracking-tighter">02. Token Efficiency</div>
+          <h3 class="text-xl font-bold mb-4">LLM-Optimized Output</h3>
+          <p class="text-brand-gray-600 dark:text-brand-gray-400 leading-relaxed">
+            HTML is 90% noise. md-fetch strips scripts, ads, and CSS, delivering clean Markdown that maximizes your
+            agent's context window.
+          </p>
+        </div>
+        <div class="feature-card bg-white dark:bg-brand-black p-8">
+          <div class="font-bold text-brand-accent mb-4 text-sm uppercase tracking-tighter">03. Developer First</div>
+          <h3 class="text-xl font-bold mb-4">CLI + REST API</h3>
+          <p class="text-brand-gray-600 dark:text-brand-gray-400 leading-relaxed">
+            Use it as a one-off CLI tool or run <code>md-fetch serve</code> to deploy a high-performance concurrent
+            processing API for your production pipelines.
+          </p>
         </div>
       </div>
-    </footer>
+    </div>
+  </section>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
-  </body>
+  <!-- Installation -->
+  <section id="installation" class="py-24 border-t border-brand-gray-200 dark:border-brand-gray-800">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-extrabold mb-4">Get Started in Seconds</h2>
+        <p class="text-brand-gray-600 dark:text-brand-gray-400">No complex configuration. Just works.</p>
+      </div>
+
+      <div class="space-y-12">
+        <!-- Install Method 1 -->
+        <div>
+          <div class="flex items-center gap-4 mb-4">
+            <span
+              class="bg-brand-black dark:bg-brand-white text-white dark:text-brand-black w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold">1</span>
+            <h3 class="font-bold text-lg">One-liner (Linux & macOS)</h3>
+          </div>
+          <div class="code-block p-4 font-mono text-sm relative group">
+            <code
+              class="text-brand-gray-800 dark:text-brand-gray-200">curl -fsSL https://raw.githubusercontent.com/nathabonfim59/md-fetch/main/install.sh | sh</code>
+            <button
+              class="absolute right-4 top-4 text-xs font-bold uppercase text-brand-gray-400 hover:text-brand-accent opacity-0 group-hover:opacity-100 transition-opacity">Copy</button>
+          </div>
+        </div>
+
+        <!-- Install Method 2 -->
+        <div>
+          <div class="flex items-center gap-4 mb-4">
+            <span
+              class="bg-brand-black dark:bg-brand-white text-white dark:text-brand-black w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold">2</span>
+            <h3 class="font-bold text-lg">Using Go</h3>
+          </div>
+          <div class="code-block p-4 font-mono text-sm">
+            <code
+              class="text-brand-gray-800 dark:text-brand-gray-200">go install github.com/nathabonfim59/md-fetch@latest</code>
+          </div>
+        </div>
+
+        <!-- Install Method 3 -->
+        <div class="p-8 border-2 border-brand-accent bg-blue-50/30 dark:bg-blue-900/10">
+          <div class="flex items-center gap-4 mb-4">
+            <span
+              class="bg-brand-accent text-white w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold">3</span>
+            <h3 class="font-bold text-lg text-brand-accent">For AI Agents (OpenCode / Gemini CLI / Claude Code)</h3>
+          </div>
+          <p class="text-sm text-brand-gray-600 dark:text-brand-gray-400 mb-4 font-medium">Add md-fetch as a specialized
+            skill to your agent ecosystem:</p>
+          <div class="bg-white dark:bg-brand-black border border-brand-accent/20 p-4 font-mono text-sm">
+            <code class="text-brand-gray-800 dark:text-brand-gray-200">npx skills add nathabonfim59/md-fetch</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section
+    class="py-20 bg-brand-black dark:bg-brand-white text-white dark:text-brand-black text-center relative overflow-hidden">
+    <!-- Background Data Wave -->
+    <div class="absolute inset-0 z-0 pointer-events-none opacity-10 flex justify-center items-center">
+      <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none" fill="none"
+        xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 50 C 25 30, 75 70, 100 50" stroke="currentColor" stroke-width="2" class="animate-path-draw" />
+        <path d="M0 60 C 25 80, 75 20, 100 60" stroke="currentColor" stroke-width="1" class="animate-path-draw"
+          style="animation-duration: 20s; animation-direction: reverse;" />
+      </svg>
+    </div>
+    <div class="max-w-4xl mx-auto px-6 relative z-10">
+      <h2 class="text-3xl md:text-5xl font-extrabold mb-8">Ready to unblock your agents?</h2>
+      <a href="https://github.com/nathabonfim59/md-fetch" target="_blank"
+        class="inline-flex items-center gap-3 bg-white dark:bg-brand-black text-brand-black dark:text-brand-white px-10 py-5 text-xl font-bold hover:bg-brand-gray-100 dark:hover:bg-brand-gray-900 transition-all">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path
+            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+        </svg>
+        Star on GitHub
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12 border-t border-brand-gray-200 dark:border-brand-gray-800">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+      <div class="flex items-center gap-3">
+        <svg class="w-6 h-6 text-brand-black dark:text-brand-white" viewBox="0 0 512 512" fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <path d="M64 16 L256 208 L448 16 V304 L256 496 L64 304 Z" fill="currentColor" />
+          <path d="M448 16 L256 208 V496 L448 304 Z" fill="#0066FF" />
+        </svg>
+        <span class="font-bold text-sm tracking-tight">md-fetch</span>
+      </div>
+      <div class="text-brand-gray-400 dark:text-brand-gray-500 text-center flex flex-col justify-center gap-2 text-sm">
+        <span class="dark:text-white opacity-90">Released under MIT License. No tracking.</span>
+        <span class="font-bold">Developed with ❤️ by <a href="https://github.com/nathabonfim59" target="_blank"
+            class="hover:text-brand-black dark:hover:text-brand-white transition-colors underline">nathabonfim59</a></span>
+      </div>
+      <div class="flex items-center gap-6">
+        <button id="theme-toggle"
+          class="p-2 border border-brand-gray-200 dark:border-brand-gray-800 hover:bg-brand-gray-100 dark:hover:bg-brand-gray-900 transition-colors"
+          aria-label="Toggle Dark Mode">
+          <svg id="theme-toggle-dark-icon" class="hidden w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+          </svg>
+          <svg id="theme-toggle-light-icon" class="hidden w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z">
+            </path>
+          </svg>
+        </button>
+        <a href="https://github.com/nathabonfim59/md-fetch"
+          class="text-brand-gray-400 hover:text-brand-black dark:hover:text-brand-white transition-colors">
+          GitHub
+        </a>
+        <a href="https://twitter.com/nathabonfim59"
+          class="text-brand-gray-400 hover:text-brand-black dark:hover:text-brand-white transition-colors">
+          Twitter
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+    var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+    // Change the icons inside the button based on previous settings
+    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      themeToggleLightIcon.classList.remove('hidden');
+    } else {
+      themeToggleDarkIcon.classList.remove('hidden');
+    }
+
+    var themeToggleBtn = document.getElementById('theme-toggle');
+
+    themeToggleBtn.addEventListener('click', function () {
+      // toggle icons inside button
+      themeToggleDarkIcon.classList.toggle('hidden');
+      themeToggleLightIcon.classList.toggle('hidden');
+
+      // if set via local storage previously
+      if (localStorage.getItem('color-theme')) {
+        if (localStorage.getItem('color-theme') === 'light') {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('color-theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('color-theme', 'light');
+        }
+
+        // if NOT set via local storage previously
+      } else {
+        if (document.documentElement.classList.contains('dark')) {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('color-theme', 'light');
+        } else {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('color-theme', 'dark');
+        }
+      }
+    });
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+</body>
+
 </html>

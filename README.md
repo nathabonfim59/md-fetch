@@ -1,4 +1,7 @@
-# md-fetch
+<div align="center">
+  <img src="docs/brand/icon.svg" width="128" height="128" alt="md-fetch logo" />
+  <h1>md-fetch</h1>
+</div>
 
 A powerful command-line tool that fetches web content and converts it to clean, readable Markdown format, optimized for AI and LLMs.
 
