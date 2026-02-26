@@ -80,6 +80,16 @@ go install github.com/nathabonfim59/md-fetch@latest
    go build -o bin/md-fetch main.go
    ```
 
+### Install the Agent Skill
+
+This repository also ships an Agent Skill (`md-fetch-cli`) compatible with the [skills ecosystem](https://skills.sh/).
+
+Install from GitHub:
+
+```bash
+npx skills add nathabonfim59/md-fetch
+```
+
 ## Usage
 
 ### CLI Mode
