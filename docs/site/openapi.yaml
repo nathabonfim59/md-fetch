@@ -1,0 +1,51 @@
+openapi: 3.0.0
+info:
+  title: md-fetch API
+  description: API for fetching web content and converting it to Markdown
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:{port}
+    variables:
+      port:
+        default: "8080"
+
+paths:
+  /fetch:
+    post:
+      summary: Fetch content from URLs and convert to Markdown
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                urls:
+                  type: array
+                  items:
+                    type: string
+                  description: List of URLs to fetch
+                browser:
+                  type: string
+                  enum: [chrome, firefox, curl]
+                  description: Browser to use for fetching (optional)
+              required:
+                - urls
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: Map of URLs to their fetched content
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: string

@@ -1,0 +1,10 @@
+<svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .primary { fill: #111827; }
+    @media (prefers-color-scheme: dark) {
+      .primary { fill: #f3f4f6; }
+    }
+  </style>
+  <path d="M64 16 L256 208 L448 16 V304 L256 496 L64 304 Z" class="primary"/>
+  <path d="M448 16 L256 208 V496 L448 304 Z" fill="#0066FF"/>
+</svg>
