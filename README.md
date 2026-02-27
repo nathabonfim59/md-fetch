@@ -15,7 +15,7 @@ A powerful command-line tool that fetches web content and converts it to clean, 
 - **Server Mode**: REST API for single or batch URL processing with parallel execution.
 - **Agent Ready**: Ships with a specialized [Agent Skill](skills/md-fetch-cli/SKILL.md) for OpenCode, Gemini CLI, and Claude Code.
 
-[Learn more about Features & Why Use Real Browsers →](docs/features.md)
+[Learn more about Features & Why Use Real Browsers →](docs/md/features.md)
 
 ## Quick Start
 
@@ -29,7 +29,7 @@ curl -fsSL https://raw.githubusercontent.com/nathabonfim59/md-fetch/main/install
 go install github.com/nathabonfim59/md-fetch@latest
 ```
 
-[Detailed Installation Guide (Releases, Source, etc.) →](docs/installation.md)
+[Detailed Installation Guide (Releases, Source, etc.) →](docs/md/installation.md)
 
 ### Basic Usage
 
@@ -44,7 +44,7 @@ md-fetch --save https://example.com
 md-fetch --browser firefox https://example.com
 ```
 
-[Browser Support & Troubleshooting →](docs/browsers.md)
+[Browser Support & Troubleshooting →](docs/md/browsers.md)
 
 ### Server Mode
 
@@ -53,14 +53,14 @@ md-fetch --browser firefox https://example.com
 md-fetch serve --port 8080
 ```
 
-[Full Server Mode & API Guide →](docs/server.md)
+[Full Server Mode & API Guide →](docs/md/server.md)
 
 ## Documentation
 
 - **[Full Landing Page & API Explorer](https://nathabonfim59.github.io/md-fetch/site/)**
 - **[CLI Reference](skills/md-fetch-cli/references/COMMANDS.md)**
 - **[Agent Skill Guide](skills/md-fetch-cli/SKILL.md)**
-- **[Development & Contributing](docs/development.md)**
+- **[Development & Contributing](docs/md/development.md)**
 
 ## License
 
